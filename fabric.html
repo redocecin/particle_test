@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<style type="text/css">
+    canvas {
+        border: 1px solid black;
+        margin: auto;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: -1;
+    }
+</style>
+
+<script type="text/javascript" src="dat.gui.min.js"></script>
+<script type="text/javascript" src="fpsmeter.min.js"></script>
+<script type="text/javascript" src="fabric.js"></script>
+
+<script type="text/javascript">
+    // requestAnimationFrame polyfill
+    window.requestAnimFrame =
+    window.requestAnimationFrame       ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame    ||
+    window.oRequestAnimationFrame      ||
+    window.msRequestAnimationFrame     ||
+    function(callback) {
+        window.setTimeout(callback, 1000 / 60);
+    };
+
+    var PARTICLE_SPEED = 200;
+    var TOTAL_PARTICLES = 5000;
+
+    var fps;
+    var imageSrc = 'media/monkey.png';
+    var particles;
+    let canvas, fabricCanvas, imgElement;
+
+    var globalTime = Date.now();
+    var tick;
+
+    window.onload = init;
+
+    function init () {
+        fps = new FPSMeter(document.body, { theme: 'dark', heat: 1, graph: 1 });
+
+        var gui = new dat.GUI();
+        gui.add(window, 'TOTAL_PARTICLES', 0, 80000);
+        
+        canvas = document.getElementById("canvas");
+        imgElement = document.getElementById("my-image");
+        fabric.Object.prototype.objectCaching = false;
+        fabric.Object.prototype.originX = 'center';
+        fabric.Object.prototype.originY = 'center';
+        fabricCanvas = new fabric.StaticCanvas(this.canvas, { enableRetinaScaling: false, renderOnAddRemove: false });
+
+        fillBrowser(canvas);
+
+        spawnParticles(TOTAL_PARTICLES);
+
+        particles = fabricCanvas.getObjects();
+
+        step();
+    }
+
+    function checkParticleCount () {
+        if (particles.length < TOTAL_PARTICLES) {
+            spawnParticles(~~TOTAL_PARTICLES - particles.length);
+        } else if (particles.length > TOTAL_PARTICLES) {
+            removeParticles();
+        }
+        particles = fabricCanvas.getObjects();
+    }
+
+    function createParticle () {
+        var p = new fabric.Image(imgElement);
+        fabricCanvas.add(p);
+
+        p.left = Math.random() * (canvas.width - p.width);
+        p.top = Math.random() * (canvas.height - p.height);
+        p.vel = {
+            x: Math.random() * PARTICLE_SPEED - PARTICLE_SPEED / 2,
+            y: Math.random() * PARTICLE_SPEED - PARTICLE_SPEED / 2
+        };
+        return p;
+    }
+
+    function fillBrowser (canvas) {
+        var dWidth = window.innerWidth / canvas.width;
+        var dHeight = window.innerHeight / canvas.height;
+        var newWidth;
+        var newHeight;
+
+        if (dWidth < dHeight) {
+            newWidth = dWidth * canvas.width;
+            newHeight = dWidth * canvas.height;
+        } else {
+            newWidth = dHeight * canvas.width;
+            newHeight = dHeight * canvas.height;
+        }
+
+        canvas.style.width = ~~newWidth + 'px';
+        canvas.style.height = ~~newHeight + 'px';
+    }
+
+    function removeParticles () {
+        for (var i = particles.length - 1; i >= TOTAL_PARTICLES; i--) {
+            fabricCanvas.remove(particles[i]);
+        }
+        // fabricCanvas.clear();
+    }
+
+    function spawnParticles (count) {
+        for (var i = 0; i < count; i++) {
+            var p = createParticle();
+            // stage.addChild(p);
+        }
+    }
+
+    function step() {
+        requestAnimFrame(step);
+
+        var current = Date.now();
+        tick = (current - globalTime) / 1000;
+        globalTime = current;
+
+        checkParticleCount();
+
+        for (var i = 0, len = ~~TOTAL_PARTICLES; i < len; i++) {
+            update(particles[i]);
+        }
+
+        fabricCanvas.renderAll();
+        fps.tick();
+    }
+
+    function update (particle) {
+        particle.left += particle.vel.x * tick;
+        particle.top += particle.vel.y * tick;
+
+        if (particle.left < 0 || particle.left + particle.width/2 > canvas.width) {
+            particle.vel.x = -particle.vel.x;
+        }
+
+        if (particle.top < 0 || particle.top + particle.height/2 > canvas.height) {
+            particle.vel.y = -particle.vel.y;
+        }
+    }
+
+</script>
+</head>
+<body>
+    <canvas id="canvas" width="500" height="500" hidpi="off"></canvas>
+    <img src="media/monkey.png" id="my-image">
+</body>
+</html>
