@@ -157,7 +157,7 @@
                 PARTICLE_WIDTH,
                 PARTICLE_HEIGHT
             );
-            render(particle);
+            // render(particle);
             particles.push(particle);
         }
     }
@@ -172,7 +172,7 @@
         for (var i = 0, len = particles.length; i < len; i++) {
             var particle = particles[i];
             update(particle);
-            render(particle);
+            // render(particle);
         }
 
         fps.tick();
@@ -191,6 +191,8 @@
         if (particle.pos.y < 0 || particle.pos.y + particle.height > VIEWPORT_HEIGHT) {
             particle.vel.y = -particle.vel.y;
         }
+        particle.image.style.left = particle.pos.x + "px";
+        particle.image.style.top = particle.pos.y + "px";
     }
 
 </script>
