@@ -32,14 +32,14 @@
     };
 
     var PARTICLE_SPEED = 200;
-    var TOTAL_PARTICLES = 1000;
+    var TOTAL_PARTICLES = 5000;
 
     var fps;
     var imageSrc = 'media/monkey.png';
     var particles;
     var particleTexture = PIXI.Texture.fromImage(imageSrc);
-    var renderer = new PIXI.WebGLRenderer(500, 500);
-    var stage = new PIXI.Stage;
+    let renderer = new PIXI.Application({width: 500, height: 500, backgroundColor: 0xffffff});
+    var stage = renderer.stage;
 
     var globalTime = Date.now();
     var tick;
@@ -54,8 +54,6 @@
 
         document.body.appendChild(renderer.view);
         fillBrowser(renderer.view);
-
-        stage.setBackgroundColor(-1);   // white
 
         spawnParticles(TOTAL_PARTICLES);
 
