@@ -1,5 +1,8 @@
 {
   "name": "particles",
+  "scripts": {
+    "start": "http-server -c-1"
+  },
   "htmlFiles": [
     "impact.html",
     "impact-fast.html"
@@ -9,6 +12,7 @@
     "grunt": "~0.4.1",
     "grunt-contrib-uglify": "~0.2.0",
     "grunt-shell": "~0.2.2",
+    "http-server": "^0.12.3",
     "shelljs": "~0.1.3"
   }
 }
