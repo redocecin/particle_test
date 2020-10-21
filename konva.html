@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<style type="text/css">
+    canvas {
+        border: 1px solid black;
+        margin: auto;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: -1;
+    }
+</style>
+
+<script type="text/javascript" src="dat.gui.min.js"></script>
+<script type="text/javascript" src="fpsmeter.min.js"></script>
+<script type="text/javascript" src="konva.js"></script>
+
+<script type="text/javascript">
+    // requestAnimationFrame polyfill
+    window.requestAnimFrame =
+    window.requestAnimationFrame       ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame    ||
+    window.oRequestAnimationFrame      ||
+    window.msRequestAnimationFrame     ||
+    function(callback) {
+        window.setTimeout(callback, 1000 / 60);
+    };
+
+    var PARTICLE_SPEED = 200;
+    var TOTAL_PARTICLES = 5000;
+
+    var fps;
+    var imageSrc = 'media/monkey.png';
+    var particles;
+    let canvas, stage, layer;
+
+    var globalTime = Date.now();
+    var tick;
+
+    var imageObj = new Image();
+    imageObj.onload = init;
+    imageObj.src = imageSrc;
+
+    function init () {
+        fps = new FPSMeter(document.body, { theme: 'dark', heat: 1, graph: 1 });
+
+        var gui = new dat.GUI();
+        gui.add(window, 'TOTAL_PARTICLES', 0, 80000);
+        
+        stage = new Konva.Stage({
+            container: "canvas",
+            width: 500,
+            height: 500
+        });
+        
+        layer = new Konva.Layer();
+        
+        
+        particles = layer.children;
+        stage.add(layer);
+        layer.batchDraw();
+        canvas = document.getElementsByTagName("canvas")[0];
+        document.getElementsByClassName("konvajs-content")[0].style = "";
+        canvas.style = "";
+        canvas.width = 500;
+        canvas.height = 500;
+        spawnParticles(TOTAL_PARTICLES);
+        fillBrowser(canvas);
+
+        step();
+    }
+
+    function checkParticleCount () {
+        if (particles.length < TOTAL_PARTICLES) {
+            spawnParticles(~~TOTAL_PARTICLES - particles.length);
+        } else if (particles.length > TOTAL_PARTICLES) {
+            removeParticles();
+        }
+    }
+
+    function createParticle () {
+        var p = new Konva.Image({image: imageObj});
+        
+        p.x(Math.random() * (canvas.width - p.width()));
+        p.y(Math.random() * (canvas.height - p.height()));
+        p.vel = {
+            x: Math.random() * PARTICLE_SPEED - PARTICLE_SPEED / 2,
+            y: Math.random() * PARTICLE_SPEED - PARTICLE_SPEED / 2
+        };
+        layer.add(p);
+        return p;
+    }
+
+    function fillBrowser (canvas) {
+        var dWidth = window.innerWidth / canvas.width;
+        var dHeight = window.innerHeight / canvas.height;
+        var newWidth;
+        var newHeight;
+
+        if (dWidth < dHeight) {
+            newWidth = dWidth * canvas.width;
+            newHeight = dWidth * canvas.height;
+        } else {
+            newWidth = dHeight * canvas.width;
+            newHeight = dHeight * canvas.height;
+        }
+
+        canvas.style.width = ~~newWidth + 'px';
+        canvas.style.height = ~~newHeight + 'px';
+    }
+
+    function removeParticles () {
+        for (var i = particles.length - 1; i >= TOTAL_PARTICLES; i--) {
+            layer.destroy(particles[i]);
+        }
+        // fabricCanvas.clear();
+    }
+
+    function spawnParticles (count) {
+        for (var i = 0; i < count; i++) {
+            var p = createParticle();
+            // stage.addChild(p);
+        }
+    }
+
+    function step() {
+        requestAnimFrame(step);
+
+        var current = Date.now();
+        tick = (current - globalTime) / 1000;
+        globalTime = current;
+
+        checkParticleCount();
+
+        for (var i = 0, len = ~~TOTAL_PARTICLES; i < len; i++) {
+            update(particles[i]);
+        }
+
+        layer.batchDraw();
+        fps.tick();
+    }
+
+    function update (particle) {
+        particle.x(particle.x() + particle.vel.x * tick);
+        particle.y(particle.y() + particle.vel.y * tick);
+
+        if (particle.x() < 0 || particle.x() + particle.width()/2 > canvas.width) {
+            particle.vel.x = -particle.vel.x;
+        }
+
+        if (particle.y() < 0 || particle.y() + particle.height()/2 > canvas.height) {
+            particle.vel.y = -particle.vel.y;
+        }
+    }
+
+</script>
+</head>
+<body>
+    <div id="canvas"></canvas>
+</body>
+</html>
